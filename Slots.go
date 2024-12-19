@@ -6,23 +6,26 @@ import (
 	"time"
 )
 
-func pullLever(coinToAdd int, emoji [6]string) int {
+func pullLever(coinToAdd int, emoji [7]string) int {
   results := -1
-  randomNumber := rand.Intn(6) //this will give you an output of ether one or zero
-  fmt.Println("Result1 : ", emoji[randomNumber])
-  randomNumber2 := rand.Intn(6)
-  fmt.Println("Result2 : ", emoji[randomNumber2])
-  randomNumber3 := rand.Intn(6)
-  fmt.Println("Result3 : ", emoji[randomNumber3])
-  if randomNumber == randomNumber2 {
+  randomNumber := rand.Intn(7) //this will give you an output of ether one or zero
+  randomNumber2 := rand.Intn(7)
+  randomNumber3 := rand.Intn(7)
+  fmt.Println("[ ", emoji[randomNumber], " | ", emoji[randomNumber2], " | ", emoji[randomNumber3], " ]")
+  if randomNumber == randomNumber2 && randomNumber != randomNumber3 {
     results = results + 3
     fmt.Println("You have one match! You won 3 coins!")
-  } else if randomNumber2 == randomNumber3{
+  } else if randomNumber2 == randomNumber3 && randomNumber3 != randomNumber{
     results = results + 3
     fmt.Println("You have one match! You won 3 coins!")
   } else if randomNumber == randomNumber2 && randomNumber2 == randomNumber3{
-    results = results + 4
-    fmt.Println("You have gotten all of them in a row! You won 4 coins!")
+    if randomNumber == 5 || randomNumber == 6{
+      results = results + 10
+      fmt.Println("Jackpot! You won 10 coins!")
+    } else {
+      fmt.Println("You got all of them to match! You get 5 coins!")
+      results = results + 5
+    }
   } else if randomNumber == randomNumber3 {
     fmt.Println("You got one non-continueous match... you get your coin back.")
     results = results + 1
@@ -35,7 +38,7 @@ func main() {
   var enter string
   // Initialize random seed
 	rand.Seed(time.Now().UnixNano())
-  emoji := [6]string{"🍒", "🍊", "🫐", "🔔", "🍉", "💸"}
+  emoji := [7]string{"🍒", "🍊", "🫐", "🔔", "🍉", "💸", "💎"}
   fmt.Println("Hello, please enter the number of coins you would like to play with...")
 	fmt.Scanln(&coins)
   for {
