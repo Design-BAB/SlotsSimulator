@@ -1,3 +1,7 @@
+//Author: Design-BAB
+//Date: 6/16/2026
+//Description: Slot game
+
 #include "raylib.h"
 #include <ctime>
 #include <iostream>
@@ -8,68 +12,107 @@ using std::string;
 const int WINDOW_X = 480;
 const int WINDOW_Y = 272;
 
-struct GameState {
-    int coins;
-    string results;
-    bool isOver;
+
+class GameState {
+    public:
+        int coins;
+        int results[3];
+        string message;
+        bool isOver;
+
+    GameState(){
+        this->coins = 25;
+        this->results[0] = 0;
+        this->results[1] = 0;
+        this->results[2] = 0;
+        this->message = "Welcome to the game! Press X to roll!";
+        this->isOver = false;
+    }
 };
 
-void pullLever(GameState& yourGame, string emoji[4]){
-    yourGame.results = "";
-    int r1 = GetRandomValue(0, 3);
-    int r2 = GetRandomValue(0, 3);
-    int r3 = GetRandomValue(0, 3);
 
-    yourGame.results = "[" + emoji[r1] + "|" + emoji[r2] + "|" + emoji[r3] + "]";
+void pullLever(GameState& yourGame){
+    if (yourGame.message != "") {
+        yourGame.message = "";
+    }
+    yourGame.results[0] = GetRandomValue(0, 3);
+    yourGame.results[1] = GetRandomValue(0, 3);
+    yourGame.results[2] = GetRandomValue(0, 3);
+
     yourGame.coins--;  // cost to pull
 // all match!
-    if (r1 == r2 && r2 == r3) {
-        if (r1 == 5 || r1 == 6)
+    if (yourGame.results[0] == yourGame.results[1] && yourGame.results[1] == yourGame.results[2]) {
+        if (yourGame.results[0] == 5 || yourGame.results[0] == 6)
             yourGame.coins += 10;
-        else
+        else{
+            yourGame.message = "You got all of them to match! Won 5 coins!";
             yourGame.coins += 5;
             //close single match
-    } else if (r1 == r2 || r2 == r3) {
+        }
+    } else if (yourGame.results[0] == yourGame.results[1] || yourGame.results[1] == yourGame.results[2]) {
         yourGame.coins += 3;
+        yourGame.message = "You have one match! You won 3 coins!";
         //just the first and third one only
-    } else if (r1 == r3) {
+    } else if (yourGame.results[0] == yourGame.results[2]) {
         yourGame.coins += 1;
+        yourGame.message = "So close... coin has been returned.";
     }
-
     if (yourGame.coins == 0)
         yourGame.isOver = true;
+}
+
+
+void getInput(GameState& yourGame) {
+    if (IsKeyPressed(KEY_X)) {
+        pullLever(yourGame);
+    }
+}
+
+
+void draw(GameState& yourGame, Texture2D emojis[4]){
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+    DrawTexture(emojis[yourGame.results[0]], WINDOW_X*.20 - emojis[0].width/2, WINDOW_Y/2 - emojis[0].height/2, WHITE);
+    DrawTexture(emojis[yourGame.results[1]], WINDOW_X/2 - emojis[0].width/2, WINDOW_Y/2 - emojis[0].height/2, WHITE);
+    DrawTexture(emojis[yourGame.results[2]], WINDOW_X*.80 - emojis[0].width/2, WINDOW_Y/2 - emojis[0].height/2, WHITE);
+    DrawText(yourGame.message.c_str(), 25, 25, 20, DARKGRAY);
+    //this is to convert from int to C-style string
+    char str[16];
+    sprintf(str, "%d", yourGame.coins);
+    DrawText(str, WINDOW_X-25, WINDOW_Y-25, 20, DARKGRAY);
+    EndDrawing();
 }
 
 
 int main() {
     //creating variables
     GameState yourGame;
-    yourGame.coins = 20;
-    yourGame.results = "";
-    yourGame.isOver = false;
-    string emoji[] = {"Cherry", "Orange", "Grapes", "Bell"};
 
     //Initializing the window
-    InitWindow(WINDOW_X, WINDOW_Y, "Raylib + Code::Blocks");
+    InitWindow(WINDOW_X, WINDOW_Y, "Slots Game");
     SetTargetFPS(60);
+
+    //loading slot symbols
+    //Texture2D texture = LoadTexture("assets/Cherries.bmp");
+    Texture2D emojis[4];
+    emojis[0] = LoadTexture("assets/Cherries.bmp");
+    emojis[1] = LoadTexture("assets/Orange.bmp");
+    emojis[2] = LoadTexture("assets/Grapes.bmp");
+    emojis[3] = LoadTexture("assets/Bell.bmp");
 
     //dealing with random
     SetRandomSeed(time(NULL));
-    int num = GetRandomValue(0, 3);
-
-    //test
-    pullLever(yourGame, emoji);
 
     while (!WindowShouldClose()) {
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-        DrawText(yourGame.results.c_str(), 0, 0, 20, DARKGRAY);
-        char str[20];
-        sprintf(str, "%d", yourGame.coins);
-        DrawText(str, 190, 200, 20, DARKGRAY);
-        EndDrawing();
+        if (yourGame.isOver == false){
+            getInput(yourGame);
+        }
+        draw(yourGame, emojis);
     }
-
+    //A nessesary De-initialize step
+    for (auto symbol : emojis) {
+    UnloadTexture(symbol);
+    }
     CloseWindow();
     return 0;
 }
