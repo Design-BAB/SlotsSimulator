@@ -18,7 +18,10 @@ class GameState {
         int coins;
         int results[3];
         string message;
+        int whichRoll;
+        bool selectingNow;
         bool isOver;
+        int frames;
 
     GameState(){
         this->coins = 25;
@@ -26,39 +29,48 @@ class GameState {
         this->results[1] = 0;
         this->results[2] = 0;
         this->message = "Welcome to the game! Press X to roll!";
+        this->whichRoll = 0;
+        this-> selectingNow = false;
         this->isOver = false;
+        this->frames = 0;
     }
 };
 
 
 void pullLever(GameState& yourGame){
-    if (yourGame.message != "") {
-        yourGame.message = "";
-    }
-    yourGame.results[0] = GetRandomValue(0, 3);
-    yourGame.results[1] = GetRandomValue(0, 3);
-    yourGame.results[2] = GetRandomValue(0, 3);
-
-    yourGame.coins--;  // cost to pull
-// all match!
-    if (yourGame.results[0] == yourGame.results[1] && yourGame.results[1] == yourGame.results[2]) {
-        if (yourGame.results[0] == 5 || yourGame.results[0] == 6)
-            yourGame.coins += 10;
-        else{
-            yourGame.message = "You got all of them to match! Won 5 coins!";
-            yourGame.coins += 5;
-            //close single match
+    yourGame.message = "Let's roll! Press x to pull the lever.";
+    if (yourGame.selectingNow == false){
+        yourGame.selectingNow = true;
+    } else if (yourGame.whichRoll == 2 && yourGame.selectingNow == true) {
+        yourGame.coins--;  // cost to pull
+        // all match!
+        if (yourGame.results[0] == yourGame.results[1] && yourGame.results[1] == yourGame.results[2]) {
+            if (yourGame.results[0] == 5 || yourGame.results[0] == 6)
+                yourGame.coins += 10;
+            else{
+                yourGame.message = "You got all of them to match! Won 5 coins!";
+                yourGame.coins += 5;
+                //close single match
+            }
+        } else if (yourGame.results[0] == yourGame.results[1] || yourGame.results[1] == yourGame.results[2]) {
+            yourGame.coins += 3;
+            yourGame.message = "You have one match! You won 3 coins!";
+            //just the first and third one only
+        } else if (yourGame.results[0] == yourGame.results[2]) {
+            yourGame.coins += 1;
+            yourGame.message = "So close... coin has been returned.";
         }
-    } else if (yourGame.results[0] == yourGame.results[1] || yourGame.results[1] == yourGame.results[2]) {
-        yourGame.coins += 3;
-        yourGame.message = "You have one match! You won 3 coins!";
-        //just the first and third one only
-    } else if (yourGame.results[0] == yourGame.results[2]) {
-        yourGame.coins += 1;
-        yourGame.message = "So close... coin has been returned.";
+        if (yourGame.coins == 0) {
+            yourGame.isOver = true;
+        }
+        yourGame.selectingNow = false;
+        yourGame.whichRoll = 0;
+    } else if (yourGame.whichRoll < 3 && yourGame.selectingNow == true) {
+        yourGame.selectingNow = false;
+        if (yourGame.whichRoll < 3){
+        yourGame.whichRoll++;
+        }
     }
-    if (yourGame.coins == 0)
-        yourGame.isOver = true;
 }
 
 
@@ -68,6 +80,16 @@ void getInput(GameState& yourGame) {
     }
 }
 
+void update(GameState& yourGame) {
+    yourGame.frames++;
+    if (yourGame.selectingNow && yourGame.frames % 7 == 0) {
+        if (yourGame.results[yourGame.whichRoll] < 3){
+            yourGame.results[yourGame.whichRoll]++;
+        } else {
+        yourGame.results[yourGame.whichRoll] = 0;
+        }
+    }
+}
 
 void draw(GameState& yourGame, Texture2D emojis[4]){
     BeginDrawing();
@@ -106,6 +128,7 @@ int main() {
     while (!WindowShouldClose()) {
         if (yourGame.isOver == false){
             getInput(yourGame);
+            update(yourGame);
         }
         draw(yourGame, emojis);
     }
